@@ -1,25 +1,18 @@
+#include "mmath.h"
 #include <GL/glew.h>
 #include <GL/glut.h>
 #include <math.h>
 
 #define GL_PI 3.141592653589
 
-static float xRot = 0.0f, zRot = 0.0f;
-static float dxRot = 0.0f, dzRot = 0.0f;
-
-#define V3_COMPS 3
-typedef union {
-    float cs[V3_COMPS];
-    float x;
-    float y;
-    float z;
-} v3;
+static float xRot = 0.0f, yRot = 0.0f, zRot = 0.0f;
+static float dxRot = 0.0f, dyRot = 0.0f, dzRot = 0.0f;
 
 #define VERTS_PER_PLANE 3
 #define OCT_PLANES 8
 
-static const float r = 10.0f;
-v3 octahedron_mesh[OCT_PLANES][VERTS_PER_PLANE] = {
+static const float r = 1.0f;
+Vector3 octahedron_mesh[OCT_PLANES][VERTS_PER_PLANE] = {
     {{0.0f, 0.0f, r}, {r, 0.0f, 0.0f}, {0.0f, r, 0.0f}},
     {{0.0f, 0.0f, r}, {0.0f, r, 0.0f}, {-r, 0.0f, 0.0f}},
     {{0.0f, 0.0f, r}, {-r, 0.0f, 0.0f}, {0.0f, -r, 0.0f}},
@@ -42,6 +35,12 @@ void normalKeysDown(unsigned char key, int x, int y) {
     case 's':
         dxRot = 1.0f;
         break;
+    case 'q':
+        dyRot = -1.0f;
+        break;
+    case 'e':
+        dyRot = 1.0f;
+        break;
     case 'a':
         dzRot = 1.0f;
         break;
@@ -62,6 +61,10 @@ void normalKeysUp(unsigned char key, int x, int y) {
     case 's':
         dxRot = 0.0f;
         break;
+    case 'q':
+    case 'e':
+        dyRot = 0.0f;
+        break;
     case 'a':
     case 'd':
         dzRot = 0.0f;
@@ -72,29 +75,29 @@ void normalKeysUp(unsigned char key, int x, int y) {
 }
 
 void reshape(int w, int h) {
-    float fAspect;
-
     // Prevent a divide by zero
     if (h == 0)
         h = 1;
 
     // Set Viewport to window dimensions
     glViewport(0, 0, w, h);
-    fAspect = (GLfloat) w / (GLfloat) h;
 
     // Reset coordinate system
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
     // Produce the perspective projection
-    gluPerspective(60.0f, fAspect, 0.001f, 50.0f);
+    float fAspect = (float) w / (float) h;
+    gluPerspective(60.0f, fAspect, 0.0f, 100.0f);
+    // glOrtho(-20.0f, 20.0f, -20.0f, 20.0f, 0.0f, -100.0f);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
 
 void update() {
-    if (dxRot || dzRot) {
+    if (dxRot || dyRot || dzRot) {
         xRot += dxRot;
+        yRot += dyRot;
         zRot += dzRot;
     }
 }
@@ -104,15 +107,37 @@ void render() {
 
     update();
     glPushMatrix();
-    glTranslatef(0.0f, 0.0f, -25.0f);
-    glRotatef(xRot, 1.0f, 0.0f, 0.0f);
-    glRotatef(zRot, 0.0f, 0.0f, 1.0f);
+
+    Matrix4 modelMatrix;
+    loadIdentity(modelMatrix);
+
+    Matrix4 tmp;
+    loadIdentity(tmp);
+
+    loadScale(10.0f, 10.0f, 10.0f, tmp);
+    multMatrixByMatrix_mut(tmp, modelMatrix);
+
+    loadRotationZ(degToRad(zRot), tmp);
+    multMatrixByMatrix_mut(tmp, modelMatrix);
+
+    loadRotationY(degToRad(yRot), tmp);
+    multMatrixByMatrix_mut(tmp, modelMatrix);
+
+    loadRotationX(degToRad(xRot), tmp);
+    multMatrixByMatrix_mut(tmp, modelMatrix);
+
+    loadTranslate(0.0f, 0.0f, -30.0f, tmp);
+    multMatrixByMatrix_mut(tmp, modelMatrix);
+
+    glPushMatrix();
+    glLoadIdentity();
+    glMultMatrixf(modelMatrix);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glBegin(GL_TRIANGLES);
     for (size_t plane = 0; plane < OCT_PLANES; ++plane) {
         for (size_t i = 0; i < VERTS_PER_PLANE; ++i) {
-            glVertex3fv(octahedron_mesh[plane][i].cs);
+            glVertex3fv(octahedron_mesh[plane][i]);
         }
     }
     glEnd();

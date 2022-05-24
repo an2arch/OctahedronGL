@@ -8,6 +8,8 @@
 static float xRot = 0.0f, yRot = 0.0f, zRot = 0.0f;
 static float dxRot = 0.0f, dyRot = 0.0f, dzRot = 0.0f;
 
+Matrix4 projection_matrix;
+
 #define VERTS_PER_PLANE 3
 #define OCT_PLANES 8
 
@@ -82,14 +84,18 @@ void reshape(int w, int h) {
     // Set Viewport to window dimensions
     glViewport(0, 0, w, h);
 
-    // Reset coordinate system
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
     // Produce the perspective projection
     float fAspect = (float) w / (float) h;
-    gluPerspective(60.0f, fAspect, 0.0f, 100.0f);
-    // glOrtho(-20.0f, 20.0f, -20.0f, 20.0f, 0.0f, -100.0f);
+    loadPerspective(degToRad(50.0f), fAspect, 0.0f, 50.0f, projection_matrix);
+
+    /*
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glMultMatrixf(projection_matrix);
+    */
+
+    // gluPerspective(60.0f, fAspect, 0.0f, 100.0f);
+
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
@@ -106,7 +112,6 @@ void render() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     update();
-    glPushMatrix();
 
     Matrix4 modelMatrix;
     loadIdentity(modelMatrix);
@@ -129,8 +134,9 @@ void render() {
     loadTranslate(0.0f, 0.0f, -30.0f, tmp);
     multMatrixByMatrix_mut(tmp, modelMatrix);
 
+    multMatrixByMatrix_mut(projection_matrix, modelMatrix);
+
     glPushMatrix();
-    glLoadIdentity();
     glMultMatrixf(modelMatrix);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -161,7 +167,7 @@ void setup() {
 
 int main(int argc, char *argv[]) {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(800, 600);
     glutCreateWindow("Depth Test");
 

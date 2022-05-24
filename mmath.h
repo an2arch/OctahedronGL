@@ -21,7 +21,7 @@ typedef GLfloat Vector3[VECTOR3_COMPS];
 typedef GLfloat Vector4[VECTOR4_COMPS];
 
 #define MATRIX4_SIZE 4
-typedef GLfloat Matrix4[MATRIX4_SIZE * MATRIX4_SIZE]; // A column major 4x4 matrix of type GLfloat
+typedef GLfloat Matrix4[MATRIX4_SIZE * MATRIX4_SIZE]; // A column major 4x4 matrix
 
 void loadIdentity(Matrix4 result);
 void multMatrixByVector4(Matrix4 first, Vector4 second, Vector4 result);
@@ -33,5 +33,6 @@ void loadTranslate(float x, float y, float z, Matrix4 result);
 void loadRotationX(float angle, Matrix4 result);
 void loadRotationY(float angle, Matrix4 result);
 void loadRotationZ(float angle, Matrix4 result);
+void loadPerspective(float fovy, float aspect, float zNear, float zFar, Matrix4 result);
 
 #endif // MMATH_H_

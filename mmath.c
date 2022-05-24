@@ -54,15 +54,7 @@ void multMatrixByMatrix_mut(Matrix4 first, Matrix4 second) {
     Matrix4 tmp = {};
     memcpy(tmp, second, MATRIX4_SIZE * MATRIX4_SIZE * sizeof(second[0]));
 
-    for (size_t i = 0; i < MATRIX4_SIZE; ++i) {
-        for (size_t j = 0; j < MATRIX4_SIZE; ++j) {
-            second[i + j * MATRIX4_SIZE] = 0;
-            for (size_t k = 0; k < MATRIX4_SIZE; ++k) {
-                second[i + j * MATRIX4_SIZE] +=
-                    first[i + k * MATRIX4_SIZE] * tmp[k + j * MATRIX4_SIZE];
-            }
-        }
-    }
+    multMatrixByMatrix(first, tmp, second);
 }
 
 void loadScale(float x, float y, float z, Matrix4 result) {
@@ -108,3 +100,15 @@ void loadRotationZ(float angle, Matrix4 result) {
     result[1 + 0 * MATRIX4_SIZE] = sinf(angle);
     result[1 + 1 * MATRIX4_SIZE] = cosf(angle);
 }
+
+void loadPerspective(float fovy, float aspect, float zNear, float zFar, Matrix4 result) {
+    assert(result);
+    loadIdentity(result);
+    float tan_half_fov = tanf(fovy / 2.0f);
+    result[0 + 0 * MATRIX4_SIZE] = 1.0f / (aspect * tan_half_fov);
+    result[1 + 1 * MATRIX4_SIZE] = 1.0f / tan_half_fov;
+    result[2 + 2 * MATRIX4_SIZE] = -(zFar + zNear) / (zFar - zNear);
+    result[3 + 3 * MATRIX4_SIZE] = -(2.0f * zFar * zNear) / (zFar - zNear);
+    result[3 + 2 * MATRIX4_SIZE] = -1.0f;
+}
+

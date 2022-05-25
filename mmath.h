@@ -22,17 +22,30 @@ typedef GLfloat Vector4[VECTOR4_COMPS];
 
 #define MATRIX4_SIZE 4
 typedef GLfloat Matrix4[MATRIX4_SIZE * MATRIX4_SIZE]; // A column major 4x4 matrix
+#define MATRIX3_SIZE 3
+typedef GLfloat Matrix3[MATRIX3_SIZE * MATRIX3_SIZE]; // A column major 3x3 matrix
 
+float det3(Matrix3 matrix);
+float det4(Matrix4 matrix);
+void alliance4(Matrix4 matrix, int row, int col, Matrix3 res);
+void find_alliance_matrix4(Matrix4 matrix, Matrix4 res);
+void transpose4(Matrix4 matrix, Matrix4 res);
+void inversion4(Matrix4 orig_matrix, Matrix4 result);
+void print_matrix3(Matrix3 matrix);
+void print_matrix4(Matrix4 matrix);
+
+void vector3_copy(Vector3 dst, Vector3 src);
+void vector3_add(Vector3 first, Vector3 second, Vector3 result);
+void vector3_sub(Vector3 first, Vector3 second, Vector3 result);
+void vector3_scale(Vector3 v, float s);
+float vector3_dot(Vector3 first, Vector3 second);
+void vector3_cross(Vector3 first, Vector3 second, Vector3 result);
+
+void matrix4_copy(Matrix4 dst, Matrix4 src);
 void loadIdentity(Matrix4 result);
 void multMatrixByVector4(Matrix4 first, Vector4 second, Vector4 result);
 void multMatrixByVector4_mut(Matrix4 first, Vector4 second);
 void multMatrixByMatrix(Matrix4 first, Matrix4 second, Matrix4 result);
 void multMatrixByMatrix_mut(Matrix4 first, Matrix4 second);
-void loadScale(float x, float y, float z, Matrix4 result);
-void loadTranslate(float x, float y, float z, Matrix4 result);
-void loadRotationX(float angle, Matrix4 result);
-void loadRotationY(float angle, Matrix4 result);
-void loadRotationZ(float angle, Matrix4 result);
-void loadPerspective(float fovy, float aspect, float zNear, float zFar, Matrix4 result);
 
 #endif // MMATH_H_

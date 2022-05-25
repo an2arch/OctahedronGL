@@ -139,7 +139,7 @@ void render() {
     update();
 
     glPushMatrix();
-    // glTranslatef(0.0f, 0.0f, -2.0f);
+    glTranslatef(0.0f, 0.0f, -2.0f);
     glRotatef(xRot, 1.0f, 0.0f, 0.0f);
     glRotatef(yRot, 0.0f, 1.0f, 0.0f);
     glRotatef(zRot, 0.0f, 0.0f, 1.0f);

@@ -3,12 +3,17 @@
 #include <GL/glut.h>
 #include <math.h>
 
+#define FPS 60.0f
+
 #define GL_PI 3.141592653589
+
+#define ESC_KEY 0x1B
 
 static float xRot = 0.0f, yRot = 0.0f, zRot = 0.0f;
 static float dxRot = 0.0f, dyRot = 0.0f, dzRot = 0.0f;
 
 static Matrix4 camera_matrix;
+static Matrix4 inv_camera;
 static Matrix4 projection_matrix;
 
 #define VERTS_PER_PLANE 3
@@ -34,7 +39,7 @@ void normalKeysDown(unsigned char key, int x, int y) {
     (void) x;
     (void) y;
     switch (key) {
-    case 0x1B: // ESC
+    case ESC_KEY:
         glutDestroyWindow(glutGetWindow());
         break;
     case 'w':
@@ -55,6 +60,16 @@ void normalKeysDown(unsigned char key, int x, int y) {
     case 'd':
         dzRot = -1.0f;
         break;
+    case 'b':
+        printf("Body matrix:\n");
+        for (size_t i = 0; i < VECTOR4_COMPS; ++i) {
+            for (size_t j = 0; j < OCT_PLANES; ++j) {
+                printf("%f ", bodyMatrix[j][i]);
+            }
+            printf("\n");
+        }
+        printf("\n");
+        break;
     case 't':
         printf("Transformed body matrix:\n");
         for (size_t i = 0; i < VECTOR4_COMPS; ++i) {
@@ -68,6 +83,11 @@ void normalKeysDown(unsigned char key, int x, int y) {
     case 'c':
         printf("Camera matrix:\n");
         print_matrix4(camera_matrix);
+        printf("\n");
+        break;
+    case 'i':
+        printf("Inversion of camera matrix:\n");
+        print_matrix4(inv_camera);
         printf("\n");
         break;
 
@@ -136,8 +156,6 @@ void update() {
 void render() {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    update();
-
     glPushMatrix();
     glTranslatef(0.0f, 0.0f, -2.0f);
     glRotatef(xRot, 1.0f, 0.0f, 0.0f);
@@ -147,7 +165,6 @@ void render() {
 
     multMatrixByMatrix_mut(projection_matrix, camera_matrix);
 
-    static Matrix4 inv_camera;
     inversion4(camera_matrix, inv_camera);
 
     for (size_t i = 0; i < OCT_PLANES; ++i) {
@@ -162,8 +179,9 @@ void render() {
     }
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glLineWidth(2);
-    glLineStipple(2, 2);
+    glLineWidth(1);
+    glLineStipple(2, 1);
+
     for (size_t plane = 0; plane < OCT_PLANES; ++plane) {
         if (plane < 4) {
             glColor3f(0.0f, 1.0f, 0.0f);
@@ -191,7 +209,7 @@ void render() {
 void timer(int value) {
     (void) value;
     update();
-    glutTimerFunc(33, timer, 1);
+    glutTimerFunc(1000.0f / FPS, timer, 1);
     if (glutGetWindow()) {
         glutPostRedisplay();
     }
@@ -210,9 +228,15 @@ void setup() {
         vector3_sub(p3, p1, s);
         vector3_cross(f, s, n);
 
+        Vector3 middle;
+        // vector3_copy(middle, p1);
+        vector3_add(p1, p2, middle);
+        vector3_add(middle, p3, middle);
+        vector3_scale(middle, 1.0f / 3.0f);
+
         float d = -p1[0] * n[0] - p1[1] * n[1] - p1[2] * n[2];
 
-        if (p1[0] * n[0] + p1[1] * n[1] + p1[2] * n[2] + d < 0) {
+        if (middle[0] * n[0] + middle[1] * n[1] + middle[2] * n[2] + d > 0) {
             vector3_scale(n, -1);
             d *= -1;
         }
@@ -236,7 +260,7 @@ int main(int argc, char *argv[]) {
     glutReshapeFunc(reshape);
     glutDisplayFunc(render);
 
-    glutTimerFunc(33, timer, 1);
+    glutTimerFunc(1000.0f / FPS, timer, 1);
     setup();
     glutMainLoop();
     return 0;

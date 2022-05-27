@@ -157,7 +157,7 @@ void render() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     glPushMatrix();
-    glTranslatef(0.0f, 0.0f, -2.0f);
+    glTranslatef(0.0f, -0.05f, -2.0f);
     glRotatef(xRot, 1.0f, 0.0f, 0.0f);
     glRotatef(yRot, 0.0f, 1.0f, 0.0f);
     glRotatef(zRot, 0.0f, 0.0f, 1.0f);
@@ -179,8 +179,8 @@ void render() {
     }
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glLineWidth(1);
-    glLineStipple(2, 1);
+    glLineWidth(2);
+    glLineStipple(5, 1);
 
     for (size_t plane = 0; plane < OCT_PLANES; ++plane) {
         if (plane < 4) {
@@ -228,18 +228,13 @@ void setup() {
         vector3_sub(p3, p1, s);
         vector3_cross(f, s, n);
 
-        Vector3 middle;
-        // vector3_copy(middle, p1);
-        vector3_add(p1, p2, middle);
-        vector3_add(middle, p3, middle);
-        vector3_scale(middle, 1.0f / 3.0f);
-
         float d = -p1[0] * n[0] - p1[1] * n[1] - p1[2] * n[2];
 
-        if (middle[0] * n[0] + middle[1] * n[1] + middle[2] * n[2] + d > 0) {
+        if (d > 0) {
             vector3_scale(n, -1);
             d *= -1;
         }
+
         bodyMatrix[0][plane] = n[0];
         bodyMatrix[1][plane] = n[1];
         bodyMatrix[2][plane] = n[2];
@@ -251,7 +246,7 @@ int main(int argc, char *argv[]) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(800, 600);
-    glutCreateWindow("Depth Test");
+    glutCreateWindow("Culling");
 
     glutIgnoreKeyRepeat(1);
     glutKeyboardFunc(normalKeysDown);
